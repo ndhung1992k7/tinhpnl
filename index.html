@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Công Cụ Giao Dịch Crypto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.light {
+      background: #f0f2f5;
+      color: #000;
+    }
+    body.dark {
+      background: #1e1e1e;
+      color: #eee;
+    }
+    body.dark .tab,
+    body.dark input,
+    body.dark select,
+    body.dark button,
+    body.dark .tab-content {
+      background-color: #2a2a2a;
+      color: #fff;
+      border-color: #444;
+    }
+    body.dark .tab.active {
+      background-color: #1e1e1e;
+    }
+    h2 {
+      text-align: center;
+      font-size: 24px;
+    }
+    .tabs {
+      display: flex;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      gap: 5px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #ccc;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+    .tab {
+      flex-shrink: 0;
+      padding: 10px 15px;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      background-color: #eaeaea;
+      font-size: 14px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .tab.active {
+      background-color: white;
+      font-weight: bold;
+    }
+    .tab-content {
+      display: none;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 0 0 10px 10px;
+      background-color: white;
+      margin-top: -1px;
+      transition: opacity 0.3s ease-in-out;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    input, select, button {
+      margin-top: 5px;
+      margin-bottom: 10px;
+      padding: 10px;
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .result {
+      font-weight: bold;
+      color: #333;
+    }
+    .dcaRow {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .dcaRow input {
+      flex: 1;
+    }
+    @media (max-width: 600px) {
+      h2 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+<h2>CÔNG CỤ PHÂN TÍCH GIAO DỊCH CRYPTO</h2>
+<div style="text-align: right; margin-bottom: 10px;">
+  <button onclick="toggleTheme()">🌗 Chuyển chế độ</button>
+</div>
+<div class="tabs">
+  <div class="tab active" onclick="showTab(0)">📌 PNL</div>
+  <div class="tab" onclick="showTab(1)">🎯 Giá Mục Tiêu</div>
+  <div class="tab" onclick="showTab(2)">🔥 Giá Thanh Lý</div>
+  <div class="tab" onclick="showTab(3)">📊 DCA</div>
+</div>
+<div class="tab-content active">
+  <h3>Tính PNL</h3>
+  <label>Giá Mở:</label>
+  <input type="number" id="entryPrice">
+  <label>Giá Hiện Tại:</label>
+  <input type="number" id="currentPrice">
+  <label>Số Lượng:</label>
+  <input type="number" id="quantity">
+  <label>Loại vị thế:</label>
+  <select id="positionType">
+    <option value="long">Long</option>
+    <option value="short">Short</option>
+  </select>
+  <button onclick="calculatePNL()">Tính PNL</button>
+  <div class="result" id="pnlResult"></div>
+</div>
+<!-- Các tab nội dung còn lại tương tự... -->
+<script>
+  function showTab(index) {
+    const tabs = document.querySelectorAll(".tab");
+    const contents = document.querySelectorAll(".tab-content");
+    tabs.forEach((tab, i) => {
+      tab.classList.toggle("active", i === index);
+      contents[i].classList.toggle("active", i === index);
+    });
+  }
+  function calculatePNL() {
+    const entry = parseFloat(document.getElementById("entryPrice").value);
+    const current = parseFloat(document.getElementById("currentPrice").value);
+    const qty = parseFloat(document.getElementById("quantity").value);
+    const type = document.getElementById("positionType").value;
+    if (isNaN(entry) || isNaN(current) || isNaN(qty)) {
+      document.getElementById("pnlResult").innerText = "Vui lòng nhập dữ liệu hợp lệ.";
+      return;
+    }
+    const pnl = (type === "long") ? (current - entry) * qty : (entry - current) * qty;
+    document.getElementById("pnlResult").innerHTML = `PNL: <span style="color:${pnl >= 0 ? 'green' : 'red'}">${pnl.toFixed(2)} USD</span>`;
+  }
+  function toggleTheme() {
+    const body = document.body;
+    const current = body.classList.contains("dark") ? "dark" : "light";
+    const next = current === "light" ? "dark" : "light";
+    body.classList.remove(current);
+    body.classList.add(next);
+    localStorage.setItem("theme", next);
+  }
+  window.onload = function () {
+    const saved = localStorage.getItem("theme") || "light";
+    document.body.classList.add(saved);
+  }
+</script>
+</body>
+</html>
