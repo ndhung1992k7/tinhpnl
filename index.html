@@ -12,14 +12,17 @@
       margin: auto;
       transition: background 0.3s, color 0.3s;
     }
+
     body.light {
       background: #f0f2f5;
       color: #000;
     }
+
     body.dark {
       background: #1e1e1e;
       color: #eee;
     }
+
     body.dark .tab,
     body.dark input,
     body.dark select,
@@ -29,13 +32,16 @@
       color: #fff;
       border-color: #444;
     }
+
     body.dark .tab.active {
       background-color: #1e1e1e;
     }
+
     h2 {
       text-align: center;
       font-size: 24px;
     }
+
     .tabs {
       display: flex;
       overflow-x: auto;
@@ -45,9 +51,11 @@
       border-bottom: 2px solid #ccc;
       scrollbar-width: none;
     }
+
     .tabs::-webkit-scrollbar {
       display: none;
     }
+
     .tab {
       flex-shrink: 0;
       padding: 10px 15px;
@@ -59,10 +67,12 @@
       white-space: nowrap;
       cursor: pointer;
     }
+
     .tab.active {
       background-color: white;
       font-weight: bold;
     }
+
     .tab-content {
       display: none;
       width: 100%;
@@ -74,9 +84,11 @@
       margin-top: -1px;
       transition: opacity 0.3s ease-in-out;
     }
+
     .tab-content.active {
       display: block;
     }
+
     input, select, button {
       margin-top: 5px;
       margin-bottom: 10px;
@@ -86,26 +98,32 @@
       border: 1px solid #ccc;
       font-size: 16px;
     }
+
     button {
       background: #007bff;
       color: white;
       cursor: pointer;
     }
+
     button:hover {
       background: #0056b3;
     }
+
     .result {
       font-weight: bold;
       color: #333;
     }
+
     .dcaRow {
       display: flex;
       gap: 10px;
       margin-bottom: 10px;
     }
+
     .dcaRow input {
       flex: 1;
     }
+
     @media (max-width: 600px) {
       h2 {
         font-size: 20px;
@@ -114,16 +132,22 @@
   </style>
 </head>
 <body>
+
 <h2>CÔNG CỤ PHÂN TÍCH GIAO DỊCH CRYPTO</h2>
+
 <div style="text-align: right; margin-bottom: 10px;">
   <button onclick="toggleTheme()">🌗 Chuyển chế độ</button>
 </div>
+
+<!-- Tabs -->
 <div class="tabs">
   <div class="tab active" onclick="showTab(0)">📌 PNL</div>
   <div class="tab" onclick="showTab(1)">🎯 Giá Mục Tiêu</div>
   <div class="tab" onclick="showTab(2)">🔥 Giá Thanh Lý</div>
   <div class="tab" onclick="showTab(3)">📊 DCA</div>
 </div>
+
+<!-- Tab Contents -->
 <div class="tab-content active">
   <h3>Tính PNL</h3>
   <label>Giá Mở:</label>
@@ -140,7 +164,54 @@
   <button onclick="calculatePNL()">Tính PNL</button>
   <div class="result" id="pnlResult"></div>
 </div>
-<!-- Các tab nội dung còn lại tương tự... -->
+
+<div class="tab-content">
+  <h3>Tính Giá Mục Tiêu</h3>
+  <label>Giá Mở:</label>
+  <input type="number" id="entryPriceTarget">
+  <label>PNL Mong Muốn ($):</label>
+  <input type="number" id="targetPNL">
+  <label>Số Lượng:</label>
+  <input type="number" id="quantityTarget">
+  <label>Loại vị thế:</label>
+  <select id="targetPositionType">
+    <option value="long">Long</option>
+    <option value="short">Short</option>
+  </select>
+  <button onclick="calculateTargetPrice()">Tính Giá Mục Tiêu</button>
+  <div class="result" id="targetPriceResult"></div>
+</div>
+
+<div class="tab-content">
+  <h3>Tính Giá Thanh Lý</h3>
+  <label>Giá Mở:</label>
+  <input type="number" id="entryPriceLiq">
+  <label>Vốn ($):</label>
+  <input type="number" id="margin">
+  <label>Đòn bẩy:</label>
+  <input type="number" id="leverage">
+  <label>Loại vị thế:</label>
+  <select id="liqPositionType">
+    <option value="long">Long</option>
+    <option value="short">Short</option>
+  </select>
+  <button onclick="calculateLiquidation()">Tính Giá Thanh Lý</button>
+  <div class="result" id="liquidationResult"></div>
+</div>
+
+<div class="tab-content">
+  <h3>Tính Giá Trung Bình DCA (Nhiều lần)</h3>
+  <div id="dcaInputs">
+    <div class="dcaRow">
+      <input type="number" placeholder="Giá" class="dcaPrice">
+      <input type="number" placeholder="Số lượng" class="dcaQty">
+    </div>
+  </div>
+  <button onclick="addDcaRow()">+ Thêm dòng DCA</button>
+  <button onclick="calculateMultiDCA()">Tính Giá Trung Bình</button>
+  <div class="result" id="dcaMultiResult"></div>
+</div>
+
 <script>
   function showTab(index) {
     const tabs = document.querySelectorAll(".tab");
@@ -150,6 +221,7 @@
       contents[i].classList.toggle("active", i === index);
     });
   }
+
   function calculatePNL() {
     const entry = parseFloat(document.getElementById("entryPrice").value);
     const current = parseFloat(document.getElementById("currentPrice").value);
@@ -162,6 +234,71 @@
     const pnl = (type === "long") ? (current - entry) * qty : (entry - current) * qty;
     document.getElementById("pnlResult").innerHTML = `PNL: <span style="color:${pnl >= 0 ? 'green' : 'red'}">${pnl.toFixed(2)} USD</span>`;
   }
+
+  function calculateTargetPrice() {
+    const entry = parseFloat(document.getElementById("entryPriceTarget").value);
+    const pnl = parseFloat(document.getElementById("targetPNL").value);
+    const qty = parseFloat(document.getElementById("quantityTarget").value);
+    const type = document.getElementById("targetPositionType").value;
+    if (isNaN(entry) || isNaN(pnl) || isNaN(qty)) {
+      document.getElementById("targetPriceResult").innerText = "Vui lòng nhập dữ liệu hợp lệ.";
+      return;
+    }
+    const target = (type === "long") ? entry + pnl / qty : entry - pnl / qty;
+    document.getElementById("targetPriceResult").innerText = `Giá mục tiêu: ${target.toFixed(2)} USD`;
+  }
+
+  function calculateLiquidation() {
+    const entry = parseFloat(document.getElementById("entryPriceLiq").value);
+    const margin = parseFloat(document.getElementById("margin").value);
+    const leverage = parseFloat(document.getElementById("leverage").value);
+    const type = document.getElementById("liqPositionType").value;
+    const maintenanceMarginRate = 0.005;
+    if (isNaN(entry) || isNaN(margin) || isNaN(leverage)) {
+      document.getElementById("liquidationResult").innerText = "Vui lòng nhập dữ liệu hợp lệ.";
+      return;
+    }
+    let liq;
+    if (type === "long") {
+      liq = entry * (1 - (1 / leverage)) + (entry * maintenanceMarginRate);
+    } else {
+      liq = entry * (1 + (1 / leverage)) - (entry * maintenanceMarginRate);
+    }
+    document.getElementById("liquidationResult").innerText = `Giá thanh lý: ${liq.toFixed(2)} USD`;
+  }
+
+  function addDcaRow() {
+    const container = document.getElementById("dcaInputs");
+    const div = document.createElement("div");
+    div.classList.add("dcaRow");
+    div.innerHTML = `
+      <input type="number" placeholder="Giá" class="dcaPrice">
+      <input type="number" placeholder="Số lượng" class="dcaQty">
+    `;
+    container.appendChild(div);
+  }
+
+  function calculateMultiDCA() {
+    const prices = document.querySelectorAll(".dcaPrice");
+    const qtys = document.querySelectorAll(".dcaQty");
+    let totalCost = 0;
+    let totalQty = 0;
+    for (let i = 0; i < prices.length; i++) {
+      const price = parseFloat(prices[i].value);
+      const qty = parseFloat(qtys[i].value);
+      if (!isNaN(price) && !isNaN(qty)) {
+        totalCost += price * qty;
+        totalQty += qty;
+      }
+    }
+    if (totalQty === 0) {
+      document.getElementById("dcaMultiResult").innerText = "Vui lòng nhập dữ liệu hợp lệ.";
+      return;
+    }
+    const avg = totalCost / totalQty;
+    document.getElementById("dcaMultiResult").innerText = `Giá trung bình DCA: ${avg.toFixed(2)} USD`;
+  }
+
   function toggleTheme() {
     const body = document.body;
     const current = body.classList.contains("dark") ? "dark" : "light";
@@ -170,10 +307,12 @@
     body.classList.add(next);
     localStorage.setItem("theme", next);
   }
+
   window.onload = function () {
     const saved = localStorage.getItem("theme") || "light";
     document.body.classList.add(saved);
   }
 </script>
+
 </body>
 </html>
