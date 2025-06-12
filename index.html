@@ -139,6 +139,14 @@
   <button onclick="toggleTheme()">🌗 Chuyển chế độ</button>
 </div>
 
+<div style="margin-bottom: 15px;">
+  <label for="currencySelect">Chọn tiền tệ: </label>
+  <select id="currencySelect" onchange="updateCurrencySymbol()">
+    <option value="$">USD ($)</option>
+    <option value="₫">VND (₫)</option>
+  </select>
+</div>
+
 <!-- Tabs -->
 <div class="tabs">
   <div class="tab active" onclick="showTab(0)">📌 PNL</div>
@@ -169,7 +177,7 @@
   <h3>Tính Giá Mục Tiêu</h3>
   <label>Giá Mở:</label>
   <input type="number" id="entryPriceTarget">
-  <label>PNL Mong Muốn ($):</label>
+  <label>PNL Mong Muốn:</label>
   <input type="number" id="targetPNL">
   <label>Số Lượng:</label>
   <input type="number" id="quantityTarget">
@@ -186,7 +194,7 @@
   <h3>Tính Giá Thanh Lý</h3>
   <label>Giá Mở:</label>
   <input type="number" id="entryPriceLiq">
-  <label>Vốn ($):</label>
+  <label>Vốn:</label>
   <input type="number" id="margin">
   <label>Đòn bẩy:</label>
   <input type="number" id="leverage">
@@ -213,6 +221,21 @@
 </div>
 
 <script>
+  let selectedCurrencySymbol = "$";
+
+  function updateCurrencySymbol() {
+    const select = document.getElementById("currencySelect");
+    selectedCurrencySymbol = select.value;
+  }
+
+  function formatCurrency(number) {
+    const formatter = new Intl.NumberFormat('vi-VN', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    });
+    return `${formatter.format(number)} ${selectedCurrencySymbol}`;
+  }
+
   function showTab(index) {
     const tabs = document.querySelectorAll(".tab");
     const contents = document.querySelectorAll(".tab-content");
@@ -232,7 +255,8 @@
       return;
     }
     const pnl = (type === "long") ? (current - entry) * qty : (entry - current) * qty;
-    document.getElementById("pnlResult").innerHTML = `PNL: <span style="color:${pnl >= 0 ? 'green' : 'red'}">${pnl.toFixed(2)} USD</span>`;
+    const color = pnl >= 0 ? 'green' : 'red';
+    document.getElementById("pnlResult").innerHTML = `PNL: <span style="color:${color}">${formatCurrency(pnl)}</span>`;
   }
 
   function calculateTargetPrice() {
@@ -245,7 +269,7 @@
       return;
     }
     const target = (type === "long") ? entry + pnl / qty : entry - pnl / qty;
-    document.getElementById("targetPriceResult").innerText = `Giá mục tiêu: ${target.toFixed(2)} USD`;
+    document.getElementById("targetPriceResult").innerText = `Giá mục tiêu: ${formatCurrency(target)}`;
   }
 
   function calculateLiquidation() {
@@ -264,7 +288,7 @@
     } else {
       liq = entry * (1 + (1 / leverage)) - (entry * maintenanceMarginRate);
     }
-    document.getElementById("liquidationResult").innerText = `Giá thanh lý: ${liq.toFixed(2)} USD`;
+    document.getElementById("liquidationResult").innerText = `Giá thanh lý: ${formatCurrency(liq)}`;
   }
 
   function addDcaRow() {
@@ -296,7 +320,7 @@
       return;
     }
     const avg = totalCost / totalQty;
-    document.getElementById("dcaMultiResult").innerText = `Giá trung bình DCA: ${avg.toFixed(2)} USD`;
+    document.getElementById("dcaMultiResult").innerText = `Giá trung bình DCA: ${formatCurrency(avg)}`;
   }
 
   function toggleTheme() {
